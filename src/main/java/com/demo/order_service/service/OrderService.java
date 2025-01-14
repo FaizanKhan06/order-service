@@ -30,6 +30,20 @@ public class OrderService {
         this.webClient = webClientBuilder.baseUrl("http://localhost:1010").build();
     }
 
+    public OrderPojo getOrderById(int id){
+        Orderss order = repo.findById(id).orElse(null);
+
+        if(order != null){
+            OrderPojo pojo = new OrderPojo();
+            BeanUtils.copyProperties(order, pojo);
+            Mono<Payments> paymentMono = someRestCall(order.getPaymentId());
+            pojo.setPayment(paymentMono.block());
+            return pojo;
+        }
+
+        return null;
+    }
+
     public Mono<OrderPojo> addAOrder(OrderPojo order) {
         Orderss orders = new Orderss();
         orders.setOrderAmt(order.getOrderAmt());
@@ -51,11 +65,14 @@ public class OrderService {
         System.out.println();
         System.out.println();
         System.out.println();
-        System.out.println(paymentId);
+        System.out.println(paymentId.block());
         System.out.println();
         System.out.println();
         System.out.println();
         System.out.println();
+
+        orders.setPaymentId(paymentId.block());
+        orders = repo.saveAndFlush(orders);
 
         Mono<Payments> paymentMono = someRestCall(paymentId.block());
 

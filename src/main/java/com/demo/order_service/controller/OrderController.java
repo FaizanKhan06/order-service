@@ -17,6 +17,11 @@ public class OrderController {
 
     @Autowired
     OrderService orderService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderPojo> getAOrder(@PathVariable int id){
+        return new ResponseEntity<>(orderService.getOrderById(id), HttpStatus.OK);
+    }
     
 
     // Endpoint to create a new order
