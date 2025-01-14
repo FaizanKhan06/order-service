@@ -21,7 +21,7 @@ public class OrderController {
 
     // Endpoint to create a new order
     @PostMapping("")
-    public Mono<ResponseEntity<OrderPojo>> createOrder(@RequestBody Orderss order) {
+    public Mono<ResponseEntity<OrderPojo>> createOrder(@RequestBody OrderPojo order) {
         return orderService.addAOrder(order)
                            .map(savedOrder -> ResponseEntity.status(HttpStatus.CREATED).body(savedOrder))  // Success: return 201 Created
                            .defaultIfEmpty(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());  // Failure: return 400 Bad Request

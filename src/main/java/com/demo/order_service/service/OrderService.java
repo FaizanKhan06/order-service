@@ -30,18 +30,38 @@ public class OrderService {
         this.webClient = webClientBuilder.baseUrl("http://localhost:1010").build();
     }
 
-    public Mono<OrderPojo> addAOrder(Orderss order) {
-        OrderPojo pojo = new OrderPojo();
-        BeanUtils.copyProperties(order, pojo);
+    public Mono<OrderPojo> addAOrder(OrderPojo order) {
+        Orderss orders = new Orderss();
+        orders.setOrderAmt(order.getOrderAmt());
+        orders.setOrderDate(order.getOrderDate());
+        orders.setPaymentId(order.getPayment().getId());
+        
+        orders = repo.saveAndFlush(orders);
+        order.setId(orders.getId());
+        
+        Payments payment = new Payments();
+        
+        payment.setOrderId(order.getId());
+        payment.setCardNumber(order.getPayment().getCardNumber());
+        
+        kafkaTemplate.send(AppConstant.TOPIC_ORDERS, payment.toString());
+        
 
-        Mono<Payments> paymentMono = someRestCall(order.getPaymentId());
+        Mono<Integer> paymentId = someRestCall2();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println(paymentId);
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
 
-        return paymentMono.flatMap(payment -> {
-            pojo.setPayment(payment); 
-            Orderss latest = repo.saveAndFlush(order);
-            pojo.setId(latest.getId());
-            kafkaTemplate.send(AppConstant.TOPIC_ORDERS, pojo.toString());
-            return Mono.just(pojo);
+        Mono<Payments> paymentMono = someRestCall(paymentId.block());
+
+        return paymentMono.flatMap(paymentsss -> {
+            order.setPayment(paymentsss);
+            return Mono.just(order);
         });
     }
 
@@ -50,5 +70,12 @@ public class OrderService {
                              .uri("/api/payments/{id}", id)
                              .retrieve()
                              .bodyToMono(Payments.class);
+    }
+
+    public Mono<Integer> someRestCall2() {
+        return this.webClient.get()
+                             .uri("/api/payments/lastId")
+                             .retrieve()
+                             .bodyToMono(Integer.class);
     }
 }

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Payments {
     private int id;
-    private String paymentType;
+    private int orderId;
+    private int cardNumber;
 
 }
